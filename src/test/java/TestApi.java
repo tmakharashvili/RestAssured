@@ -1,10 +1,13 @@
+import calls.SMSrequests.SMSGetRequestCalls;
 import dataController.DataControllerSMSModule;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import models.SMSModule.Data;
 import models.SMSModule.GetSMSRequestModel;
 import models.SMSModule.GetSMSResponseModel;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -35,6 +38,7 @@ public class TestApi {
         }
 
     }
+
     @Test
     public void testGet() throws SQLException {
         List<GetSMSRequestModel> getSMSRequestModels = DataControllerSMSModule.getSMSRequestModels(DataControllerSMSModule.queryGetNumber);
@@ -45,7 +49,7 @@ public class TestApi {
                     accept(ContentType.JSON).
                     when().
                     get("http://10.195.105.66:7000/api/Consent?TelNumber=" + getSMSRequestModels.get(i).getTelNumber());
-         //   System.out.println(response.asPrettyString());
+            //   System.out.println(response.asPrettyString());
             GetSMSResponseModel getSMSResponseModel = response.as(GetSMSResponseModel.class);
             GetSMSRequestModel getSMSRequestModel = getSMSRequestModels.get(i);
 
@@ -54,5 +58,25 @@ public class TestApi {
                     String.valueOf(getSMSResponseModel.getData().getConsentStatusId()),
                     getSMSRequestModel.getTelNumber());
         }
+    }
+
+    @DataProvider(name = "getSMSRequestModelsIndividuals")
+    public Object[][] getSMSRequestModelsIndividuals() throws SQLException {
+        List<GetSMSRequestModel> getSMSRequestModels = DataControllerSMSModule.getSMSRequestModels(DataControllerSMSModule.queryGetNumber);
+        Object[][] data = DataControllerSMSModule.getSMSRequestModelsIndividualObjects(getSMSRequestModels);
+        return data;
+    }
+
+    @Test(dataProvider = "getSMSRequestModelsIndividuals")
+    public void testGetIndividuals(String TelNum, String PersonId, String Consent) throws SQLException {
+        SMSGetRequestCalls smsGetRequestCalls = new SMSGetRequestCalls();
+        Response response = smsGetRequestCalls.getSMSRequests(TelNum);
+
+        System.out.println(response.asPrettyString());
+
+        GetSMSResponseModel getSMSResponseModel = response.as(GetSMSResponseModel.class);
+        Data apiData = getSMSResponseModel.getData();
+        String actualConsentStatus = String.valueOf(apiData.getConsentStatusId());
+        Assert.assertEquals(actualConsentStatus, Consent, "Consent does not match the expected value");
     }
 }

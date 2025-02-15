@@ -46,4 +46,13 @@ public class DataControllerSMSModule {
         }
         return getSMSRequestModels;
     }
+    public static Object[][] getSMSRequestModelsIndividualObjects(List<GetSMSRequestModel>getSMSRequestModels) throws SQLException {
+        Object[][] data = new Object[getSMSRequestModels.size()][3];
+        for (int i = 0; i < getSMSRequestModels.size(); i++) {
+            data[i][0] = getSMSRequestModels.get(i).getTelNumber();
+            data[i][1] = getSMSRequestModels.get(i).getPersonId();
+            data[i][2] = getSMSRequestModels.get(i).getConsent();
+        }
+        return data;
+    }
 }
