@@ -1,4 +1,4 @@
-package models.SMSModule;
+package models.SMSModule.getConsent;
 
 public class Data {
     public int consentStatusId;

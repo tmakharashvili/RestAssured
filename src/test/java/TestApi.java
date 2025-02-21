@@ -1,14 +1,16 @@
-import calls.SMSrequests.SMSGetRequestCalls;
+import models.SMSModule.postConsent.PostSMSRequestModel;
+import steps.SMSModule.ConsentCalls;
 import dataController.DataControllerSMSModule;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import models.SMSModule.Data;
-import models.SMSModule.GetSMSRequestModel;
-import models.SMSModule.GetSMSResponseModel;
+import models.SMSModule.getConsent.Data;
+import models.SMSModule.getConsent.GetSMSRequestModel;
+import models.SMSModule.getConsent.GetSMSResponseModel;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import steps.SMSModule.ConsentSteps;
 
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -17,7 +19,7 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
-public class TestApi {
+public class TestApi extends ConfigTest {
 
     @Test
     void test() {
@@ -68,9 +70,9 @@ public class TestApi {
     }
 
     @Test(dataProvider = "getSMSRequestModelsIndividuals")
-    public void testGetIndividuals(String TelNum, String PersonId, String Consent) throws SQLException {
-        SMSGetRequestCalls smsGetRequestCalls = new SMSGetRequestCalls();
-        Response response = smsGetRequestCalls.getSMSRequests(TelNum);
+    public void testGetIndividuals(String TelNum, String PersonId, String Consent) {
+        ConsentCalls consentCalls = new ConsentCalls();
+        Response response = consentCalls.getSMSRequests(TelNum);
 
         System.out.println(response.asPrettyString());
 
@@ -78,5 +80,18 @@ public class TestApi {
         Data apiData = getSMSResponseModel.getData();
         String actualConsentStatus = String.valueOf(apiData.getConsentStatusId());
         Assert.assertEquals(actualConsentStatus, Consent, "Consent does not match the expected value");
+    }
+
+    @Test(dataProvider = "postSMSRequestModelsIndividuals")
+    public void testPostConsent(PostSMSRequestModel postSMSRequestModel) {
+        ConsentSteps consentSteps = new ConsentSteps();
+
+        consentSteps.postConsent(postSMSRequestModel);
+
+        GetSMSRequestModel getSMSRequestModel = new GetSMSRequestModel();
+        getSMSRequestModel.setTelNumber(postSMSRequestModel.getTelNumber());
+
+        GetSMSResponseModel getSMSResponseModel = consentSteps.GetConsent(getSMSRequestModel);
+        consentSteps.compareConsent(getSMSResponseModel, postSMSRequestModel);
     }
 }
