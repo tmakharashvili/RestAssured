@@ -2,27 +2,27 @@ package steps.SMSModule;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import models.SMSModule.postConsent.PostSMSRequestModel;
-
-import static io.restassured.RestAssured.given;
+import utils.ApiRequestSpec;
 
 public class ConsentCalls {
-    public Response getSMSRequests(String telNum) {
-        return  given().
-                header("content-type", "application/json").
-                contentType(ContentType.JSON).
-                accept(ContentType.JSON).
-                when().
-                get("http://10.195.105.66:7000/api/Consent?TelNumber=" + telNum);
+    RequestSpecification requestSpecification = ApiRequestSpec.getRequestSpec();
 
+    public Response GetConsent1(String telNum){
+        Response response = requestSpecification
+                .when()
+                .get("/api/Consent?TelNumber=" + telNum);
+        response.then().spec(ApiRequestSpec.getResponseSpec());
+        return response;
     }
-    public Response postSMSRequests(PostSMSRequestModel postSMSRequestModel) {
-        return given().
-                header("content-type", "application/json").
-                contentType(ContentType.JSON).
-                accept(ContentType.JSON).
-                when().
-                body(postSMSRequestModel).
-                post("http://10.195.105.66:7000/api/Consent");
+
+    public Response postConsent1(PostSMSRequestModel postSMSRequestModel) {
+        Response response = requestSpecification
+                .body(postSMSRequestModel)
+                .when()
+                .post("/api/Consent");
+        response.then().spec(ApiRequestSpec.getResponseSpec());
+        return response;
     }
 }

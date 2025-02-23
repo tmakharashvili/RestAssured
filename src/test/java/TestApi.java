@@ -8,7 +8,6 @@ import models.SMSModule.getConsent.Data;
 import models.SMSModule.getConsent.GetSMSRequestModel;
 import models.SMSModule.getConsent.GetSMSResponseModel;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import steps.SMSModule.ConsentSteps;
 
@@ -62,36 +61,37 @@ public class TestApi extends ConfigTest {
         }
     }
 
-    @DataProvider(name = "getSMSRequestModelsIndividuals")
-    public Object[][] getSMSRequestModelsIndividuals() throws SQLException {
-        List<GetSMSRequestModel> getSMSRequestModels = DataControllerSMSModule.getSMSRequestModels(DataControllerSMSModule.queryGetNumber);
-        Object[][] data = DataControllerSMSModule.getSMSRequestModelsIndividualObjects(getSMSRequestModels);
-        return data;
-    }
-
     @Test(dataProvider = "getSMSRequestModelsIndividuals")
-    public void testGetIndividuals(String TelNum, String PersonId, String Consent) {
+    public void testGetIndividuals(GetSMSRequestModel getSMSRequestModel) {
         ConsentCalls consentCalls = new ConsentCalls();
-        Response response = consentCalls.getSMSRequests(TelNum);
+        Response response = consentCalls.GetConsent1(getSMSRequestModel.getTelNumber());
 
         System.out.println(response.asPrettyString());
 
         GetSMSResponseModel getSMSResponseModel = response.as(GetSMSResponseModel.class);
         Data apiData = getSMSResponseModel.getData();
         String actualConsentStatus = String.valueOf(apiData.getConsentStatusId());
-        Assert.assertEquals(actualConsentStatus, Consent, "Consent does not match the expected value");
+        Assert.assertEquals(actualConsentStatus, getSMSRequestModel.getConsent());
     }
 
     @Test(dataProvider = "postSMSRequestModelsIndividuals")
-    public void testPostConsent(PostSMSRequestModel postSMSRequestModel) {
+    public void testPostConsentFluent(PostSMSRequestModel postSMSRequestModel) {
         ConsentSteps consentSteps = new ConsentSteps();
-
-        consentSteps.postConsent(postSMSRequestModel);
-
         GetSMSRequestModel getSMSRequestModel = new GetSMSRequestModel();
+
         getSMSRequestModel.setTelNumber(postSMSRequestModel.getTelNumber());
 
-        GetSMSResponseModel getSMSResponseModel = consentSteps.GetConsent(getSMSRequestModel);
-        consentSteps.compareConsent(getSMSResponseModel, postSMSRequestModel);
+        consentSteps
+                .postConsentFluent(postSMSRequestModel)
+                .getConsentFluent(getSMSRequestModel)
+                .compareConsentFluent(consentSteps.getSMSResponseModel, postSMSRequestModel);
+    }
+    @Test(dataProvider = "getSMSRequestModelsIndividuals")
+    public void testGetConsentFluent(GetSMSRequestModel getSMSRequestModel) {
+        ConsentSteps consentSteps = new ConsentSteps();
+
+        consentSteps.getConsentFluent(getSMSRequestModel);
+
+        consentSteps.compareGetConsent(consentSteps.getSMSResponseModel, getSMSRequestModel.getConsent());
     }
 }

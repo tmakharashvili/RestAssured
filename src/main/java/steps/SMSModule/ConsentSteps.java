@@ -6,43 +6,35 @@ import models.SMSModule.getConsent.GetSMSRequestModel;
 import models.SMSModule.getConsent.GetSMSResponseModel;
 import models.SMSModule.postConsent.PostSMSRequestModel;
 import org.testng.Assert;
-import utils.TestListener;
-
 
 public class ConsentSteps {
+    public PostSMSRequestModel postSMSRequestModel;
+    public GetSMSResponseModel getSMSResponseModel;
+
     @Step
-    public GetSMSResponseModel GetConsent(GetSMSRequestModel getSMSRequestModel) {
+    public ConsentSteps getConsentFluent(GetSMSRequestModel getSMSRequestModel) {
         ConsentCalls consentCalls = new ConsentCalls();
-        GetSMSResponseModel getSMSResponseModel = new GetSMSResponseModel();
-        Response response = consentCalls.getSMSRequests (getSMSRequestModel.getTelNumber());
-
-        int statusCode = response.statusCode();
-        if (statusCode ==200){
-            getSMSResponseModel = response.as(GetSMSResponseModel.class);
-            Assert.assertEquals(statusCode, 200);
-        } else {
-            Assert.assertNotEquals(statusCode, 200);
-        }
-        return getSMSResponseModel;
+        Response response = consentCalls.GetConsent1(getSMSRequestModel.getTelNumber());
+        getSMSResponseModel = response.as(GetSMSResponseModel.class);
+        return this;
     }
+
     @Step
-    public void postConsent(PostSMSRequestModel postSMSRequestModel){
+    public ConsentSteps postConsentFluent(PostSMSRequestModel postSMSRequestModel) {
         ConsentCalls consentCalls = new ConsentCalls();
-
-        Response response = consentCalls.postSMSRequests(postSMSRequestModel);
-
-        int statusCode = response.statusCode();
-        if (statusCode ==200){
-            new TestListener().MessageText("პოსტ მეთოდი წარმატებით შესრულდა, postSMSRequestModel " + postSMSRequestModel);
-            Assert.assertEquals(statusCode, 200);
-        } else {
-            new TestListener().MessageText("პოსტ მეთოდი წარუმატებელია, response " + response.asPrettyString());
-            Assert.assertNotEquals(statusCode, 200);
-        }
+        Response response = consentCalls.postConsent1(postSMSRequestModel);
+        getSMSResponseModel = response.as(GetSMSResponseModel.class);
+        return this;
     }
+
     @Step
-    public void compareConsent(GetSMSResponseModel getSMSResponseModel, PostSMSRequestModel postSMSRequestModel) {
+    public void compareConsentFluent(GetSMSResponseModel getSMSResponseModel, PostSMSRequestModel postSMSRequestModel) {
         String actualStatus = String.valueOf(getSMSResponseModel.getData().getConsentStatusId());
         Assert.assertEquals(actualStatus, postSMSRequestModel.getStatus());
+    }
+    @Step
+    public void compareGetConsent(GetSMSResponseModel getSMSResponseModel, String expectedConsent) {
+        String actualStatus = String.valueOf(getSMSResponseModel.getData().getConsentStatusId());
+        Assert.assertEquals(actualStatus, expectedConsent);
     }
 }
